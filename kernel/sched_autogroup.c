@@ -6,6 +6,7 @@
 #include <linux/utsname.h>
 
 unsigned int __read_mostly sysctl_sched_autogroup_enabled = 1;
+<<<<<<< HEAD
 static struct autogroup autogroup_default;
 static atomic_t autogroup_seq_nr;
 
@@ -13,11 +14,30 @@ static void __init autogroup_init(struct task_struct *init_task)
 {
 	autogroup_default.tg = &root_task_group;
 	root_task_group.autogroup = &autogroup_default;
+=======
+
+struct autogroup {
+	struct task_group	*tg;
+	struct kref		kref;
+	struct rw_semaphore 	lock;
+	unsigned long		id;
+	int			nice;
+};
+
+static struct autogroup autogroup_default;
+static atomic_t autogroup_seq_nr;
+
+static void autogroup_init(struct task_struct *init_task)
+{
+	autogroup_default.tg = &init_task_group;
+	init_task_group.autogroup = &autogroup_default;
+>>>>>>> 3f8e9e3... CFS Autogroup
 	kref_init(&autogroup_default.kref);
 	init_rwsem(&autogroup_default.lock);
 	init_task->signal->autogroup = &autogroup_default;
 }
 
+<<<<<<< HEAD
 static inline void autogroup_free(struct task_group *tg)
 {
 	kfree(tg->autogroup);
@@ -33,6 +53,15 @@ static inline void autogroup_destroy(struct kref *kref)
 	ag->tg->rt_rq = NULL;
 #endif
 	sched_destroy_group(ag->tg);
+=======
+static inline void autogroup_destroy(struct kref *kref)
+{
+	struct autogroup *ag = container_of(kref, struct autogroup, kref);
+	struct task_group *tg = ag->tg;
+
+	kfree(ag);
+	sched_destroy_group(tg);
+>>>>>>> 3f8e9e3... CFS Autogroup
 }
 
 static inline void autogroup_kref_put(struct autogroup *ag)
@@ -46,6 +75,7 @@ static inline struct autogroup *autogroup_kref_get(struct autogroup *ag)
 	return ag;
 }
 
+<<<<<<< HEAD
 static inline struct autogroup *autogroup_task_get(struct task_struct *p)
 {
 	struct autogroup *ag;
@@ -68,10 +98,16 @@ static inline struct autogroup *autogroup_create(void)
 {
 	struct autogroup *ag = kzalloc(sizeof(*ag), GFP_KERNEL);
 	struct task_group *tg;
+=======
+static inline struct autogroup *autogroup_create(void)
+{
+	struct autogroup *ag = kzalloc(sizeof(*ag), GFP_KERNEL);
+>>>>>>> 3f8e9e3... CFS Autogroup
 
 	if (!ag)
 		goto out_fail;
 
+<<<<<<< HEAD
 	tg = sched_create_group(&root_task_group);
 
 	if (IS_ERR(tg))
@@ -105,6 +141,26 @@ out_fail:
 		printk(KERN_WARNING "autogroup_create: %s failure.\n",
 			ag ? "sched_create_group()" : "kmalloc()");
 	}
+=======
+	ag->tg = sched_create_group(&init_task_group);
+
+	if (IS_ERR(ag->tg))
+		goto out_fail;
+
+	ag->tg->autogroup = ag;
+	kref_init(&ag->kref);
+	init_rwsem(&ag->lock);
+	ag->id = atomic_inc_return(&autogroup_seq_nr);
+
+	return ag;
+
+out_fail:
+	if (ag) {
+		kfree(ag);
+		WARN_ON(1);
+	} else
+		WARN_ON(1);
+>>>>>>> 3f8e9e3... CFS Autogroup
 
 	return autogroup_kref_get(&autogroup_default);
 }
@@ -128,11 +184,14 @@ task_wants_autogroup(struct task_struct *p, struct task_group *tg)
 	return true;
 }
 
+<<<<<<< HEAD
 static inline bool task_group_is_autogroup(struct task_group *tg)
 {
 	return tg != &root_task_group && tg->autogroup;
 }
 
+=======
+>>>>>>> 3f8e9e3... CFS Autogroup
 static inline struct task_group *
 autogroup_task_group(struct task_struct *p, struct task_group *tg)
 {
@@ -149,6 +208,7 @@ autogroup_move_group(struct task_struct *p, struct autogroup *ag)
 {
 	struct autogroup *prev;
 	struct task_struct *t;
+<<<<<<< HEAD
 	unsigned long flags;
 
 	BUG_ON(!lock_task_sighand(p, &flags));
@@ -156,10 +216,19 @@ autogroup_move_group(struct task_struct *p, struct autogroup *ag)
 	prev = p->signal->autogroup;
 	if (prev == ag) {
 		unlock_task_sighand(p, &flags);
+=======
+
+	spin_lock(&p->sighand->siglock);
+
+	prev = p->signal->autogroup;
+	if (prev == ag) {
+		spin_unlock(&p->sighand->siglock);
+>>>>>>> 3f8e9e3... CFS Autogroup
 		return;
 	}
 
 	p->signal->autogroup = autogroup_kref_get(ag);
+<<<<<<< HEAD
 
 	t = p;
 	do {
@@ -167,6 +236,16 @@ autogroup_move_group(struct task_struct *p, struct autogroup *ag)
 	} while_each_thread(p, t);
 
 	unlock_task_sighand(p, &flags);
+=======
+	t = p;
+
+	do {
+		sched_move_task(p);
+	} while_each_thread(p, t);
+
+	spin_unlock(&p->sighand->siglock);
+
+>>>>>>> 3f8e9e3... CFS Autogroup
 	autogroup_kref_put(prev);
 }
 
@@ -190,7 +269,15 @@ EXPORT_SYMBOL(sched_autogroup_detach);
 
 void sched_autogroup_fork(struct signal_struct *sig)
 {
+<<<<<<< HEAD
 	sig->autogroup = autogroup_task_get(current);
+=======
+	struct sighand_struct *sighand = current->sighand;
+
+	spin_lock(&sighand->siglock);
+	sig->autogroup = autogroup_kref_get(current->signal->autogroup);
+	spin_unlock(&sighand->siglock);
+>>>>>>> 3f8e9e3... CFS Autogroup
 }
 
 void sched_autogroup_exit(struct signal_struct *sig)
@@ -209,6 +296,21 @@ __setup("noautogroup", setup_autogroup);
 
 #ifdef CONFIG_PROC_FS
 
+<<<<<<< HEAD
+=======
+static inline struct autogroup *autogroup_get(struct task_struct *p)
+{
+	struct autogroup *ag;
+
+	/* task may be moved after we unlock.. tough */
+	spin_lock(&p->sighand->siglock);
+	ag = autogroup_kref_get(p->signal->autogroup);
+	spin_unlock(&p->sighand->siglock);
+
+	return ag;
+}
+
+>>>>>>> 3f8e9e3... CFS Autogroup
 int proc_sched_autogroup_set_nice(struct task_struct *p, int *nice)
 {
 	static unsigned long next = INITIAL_JIFFIES;
@@ -229,8 +331,13 @@ int proc_sched_autogroup_set_nice(struct task_struct *p, int *nice)
 	if (!capable(CAP_SYS_ADMIN) && time_before(jiffies, next))
 		return -EAGAIN;
 
+<<<<<<< HEAD
 	next = HZ / 10 + jiffies;
 	ag = autogroup_task_get(p);
+=======
+	next = HZ / 10 + jiffies;;
+	ag = autogroup_get(p);
+>>>>>>> 3f8e9e3... CFS Autogroup
 
 	down_write(&ag->lock);
 	err = sched_group_set_shares(ag->tg, prio_to_weight[*nice + 20]);
@@ -245,7 +352,11 @@ int proc_sched_autogroup_set_nice(struct task_struct *p, int *nice)
 
 void proc_sched_autogroup_show_task(struct task_struct *p, struct seq_file *m)
 {
+<<<<<<< HEAD
 	struct autogroup *ag = autogroup_task_get(p);
+=======
+	struct autogroup *ag = autogroup_get(p);
+>>>>>>> 3f8e9e3... CFS Autogroup
 
 	down_read(&ag->lock);
 	seq_printf(m, "/autogroup-%ld nice %d\n", ag->id, ag->nice);
@@ -258,11 +369,14 @@ void proc_sched_autogroup_show_task(struct task_struct *p, struct seq_file *m)
 #ifdef CONFIG_SCHED_DEBUG
 static inline int autogroup_path(struct task_group *tg, char *buf, int buflen)
 {
+<<<<<<< HEAD
 	int enabled = ACCESS_ONCE(sysctl_sched_autogroup_enabled);
 
 	if (!enabled || !tg->autogroup)
 		return 0;
 
+=======
+>>>>>>> 3f8e9e3... CFS Autogroup
 	return snprintf(buf, buflen, "%s-%ld", "/autogroup", tg->autogroup->id);
 }
 #endif /* CONFIG_SCHED_DEBUG */

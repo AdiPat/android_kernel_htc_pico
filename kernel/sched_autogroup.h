@@ -1,5 +1,6 @@
 #ifdef CONFIG_SCHED_AUTOGROUP
 
+<<<<<<< HEAD
 struct autogroup {
 	struct kref		kref;
 	struct task_group	*tg;
@@ -8,17 +9,22 @@ struct autogroup {
 	int			nice;
 };
 
+=======
+>>>>>>> 3f8e9e3... CFS Autogroup
 static inline struct task_group *
 autogroup_task_group(struct task_struct *p, struct task_group *tg);
 
 #else /* !CONFIG_SCHED_AUTOGROUP */
 
 static inline void autogroup_init(struct task_struct *init_task) {  }
+<<<<<<< HEAD
 static inline void autogroup_free(struct task_group *tg) { }
 static inline bool task_group_is_autogroup(struct task_group *tg)
 {
 	return 0;
 }
+=======
+>>>>>>> 3f8e9e3... CFS Autogroup
 
 static inline struct task_group *
 autogroup_task_group(struct task_struct *p, struct task_group *tg)
