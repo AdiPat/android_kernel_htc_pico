@@ -432,18 +432,18 @@ static void __remove_inode_hash(struct inode *inode)
 }
 
 /**
- *	remove_inode_hash - remove an inode from the hash
+ *	remove_inode_hash - remove an inode from the hash sockets
  *	@inode: inode to unhash
  *
  *	Remove an inode from the superblock.
  */
-void remove_inode_hash(struct inode *inode)
+void __remove_inode_hash(struct inode *inode)
 {
 	spin_lock(&inode_lock);
 	hlist_del_init(&inode->i_hash);
 	spin_unlock(&inode_lock);
 }
-EXPORT_SYMBOL(remove_inode_hash);
+EXPORT_SYMBOL(__remove_inode_hash);
 
 void end_writeback(struct inode *inode)
 {
