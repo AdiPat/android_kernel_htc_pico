@@ -744,72 +744,9 @@ config DEBUG_BLK_CGROUP
 
 endif # CGROUPS
 
-config SCHED_AUTOGROUP
-	bool "Automatic process group scheduling"
-	select CGROUPS
-	select CGROUP_SCHED
-	select FAIR_GROUP_SCHED
-	help
-	  This option optimizes the scheduler for common desktop workloads by
-	  automatically creating and populating task groups.  This separation
-	  of workloads isolates aggressive CPU burners (like build jobs) from
-	  desktop applications.  Task group autogeneration is currently based
-	  upon task session.
-
-config MM_OWNER
-	bool
-
-config SYSFS_DEPRECATED
-	bool
-
-config SYSFS_DEPRECATED_V2
-	bool "enable deprecated sysfs features to support old userspace tools"
-	depends on SYSFS
-	default n
-	select SYSFS_DEPRECATED
-	help
-	  This option switches the layout of sysfs to the deprecated
-	  version. Do not use it on recent distributions.
-
-	  The current sysfs layout features a unified device tree at
-	  /sys/devices/, which is able to express a hierarchy between
-	  class devices. If the deprecated option is set to Y, the
-	  unified device tree is split into a bus device tree at
-	  /sys/devices/ and several individual class device trees at
-	  /sys/class/. The class and bus devices will be connected by
-	  "<subsystem>:<name>" and the "device" links. The "block"
-	  class devices, will not show up in /sys/class/block/. Some
-	  subsystems will suppress the creation of some devices which
-	  depend on the unified device tree.
-
-	  This option is not a pure compatibility option that can
-	  be safely enabled on newer distributions. It will change the
-	  layout of sysfs to the non-extensible deprecated version,
-	  and disable some features, which can not be exported without
-	  confusing older userspace tools. Since 2007/2008 all major
-	  distributions do not enable this option, and ship no tools which
-	  depend on the deprecated layout or this option.
-
-	  If you are using a new kernel on an older distribution, or use
-	  older userspace tools, you might need to say Y here. Do not say Y,
-	  if the original kernel, that came with your distribution, has
-	  this option set to N.
-
-config RELAY
-	bool "Kernel->user space relay support (formerly relayfs)"
-	help
-	  This option enables support for relay interface support in
-	  certain file systems (such as debugfs).
-	  It is designed to provide an efficient mechanism for tools and
-	  facilities to relay large amounts of data from kernel space to
-	  user space.
-
-	  If unsure, say N.
-
-config NAMESPACES
-	bool "Namespaces support" if EMBEDDED
-	default !EMBEDDED
->>>>>>> 3f8e9e3... CFS Autogroup
+menuconfig NAMESPACES
+	bool "Namespaces support" if EXPERT
+	default !EXPERT
 	help
 	  Provides the way to make tasks work with different objects using
 	  the same id. For example same IPC id may refer to different objects
