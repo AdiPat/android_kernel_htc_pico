@@ -1427,7 +1427,7 @@ struct super_block {
 	 */
 	char __rcu *s_options;
 	const struct dentry_operations *s_d_op; /* default d_op for dentries */
-	char *s_options;
+	//char *s_options;
 	int cleancache_poolid;
 };
 
