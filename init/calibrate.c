@@ -120,8 +120,6 @@ static unsigned long __cpuinit calibrate_delay_direct(void) {return 0;}
  */
 #define LPS_PREC 8
 
-<<<<<<< HEAD
-=======
 static unsigned long __cpuinit calibrate_delay_converge(void)
 {
 	/* First stage - slowly accelerate to find initial bounds */
@@ -201,7 +199,6 @@ unsigned long __attribute__((weak)) __cpuinit calibrate_delay_is_known(void)
 	return 0;
 }
 
->>>>>>> c7ea9e6... init:calibrate: lpj from 3.4.
 void __cpuinit calibrate_delay(void)
 {
 	unsigned long ticks, loopbit;
@@ -209,10 +206,10 @@ void __cpuinit calibrate_delay(void)
 	static bool printed;
 	int this_cpu = smp_processor_id();
 
-<<<<<<< HEAD
+
 	if (preset_lpj) {
 		loops_per_jiffy = preset_lpj;
-=======
+
 	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
 		lpj = per_cpu(cpu_loops_per_jiffy, this_cpu);
 		if (!printed)
@@ -220,7 +217,7 @@ void __cpuinit calibrate_delay(void)
 				"already calibrated this CPU");
 	} else if (preset_lpj) {
 		lpj = preset_lpj;
->>>>>>> c7ea9e6... init:calibrate: lpj from 3.4.
+
 		if (!printed)
 			pr_info("Calibrating delay loop (skipped) "
 				"preset value.. ");
@@ -228,13 +225,11 @@ void __cpuinit calibrate_delay(void)
 		loops_per_jiffy = lpj_fine;
 		pr_info("Calibrating delay loop (skipped), "
 			"value calculated using timer frequency.. ");
-<<<<<<< HEAD
+
 	} else if ((loops_per_jiffy = calibrate_delay_direct()) != 0) {
-=======
 	} else if ((lpj = calibrate_delay_is_known())) {
 		;
 	} else if ((lpj = calibrate_delay_direct()) != 0) {
->>>>>>> c7ea9e6... init:calibrate: lpj from 3.4.
 		if (!printed)
 			pr_info("Calibrating delay using timer "
 				"specific routine.. ");
