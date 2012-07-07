@@ -11,6 +11,7 @@ lib-y		:= backtrace.o changebit.o csumipv6.o csumpartial.o   \
 		   strncpy_from_user.o strnlen_user.o                 \
 		   strchr.o strrchr.o                                 \
 		   testchangebit.o testclearbit.o testsetbit.o        \
+		   ucmpdi2.o lib1funcs.o div64.o                      \
 		   ashldi3.o ashrdi3.o lshrdi3.o muldi3.o             \
 		   io-readsb.o io-writesb.o io-readsl.o io-writesl.o
 
